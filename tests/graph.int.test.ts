@@ -4,7 +4,7 @@ import { graph } from "../src/agent/graph.js";
 describe("Graph", () => {
   it("should process input through the graph", async () => {
     const input = "What is the capital of France?";
-    const result = await graph.invoke({ messages: [input] });
+    const result = await graph.invoke({ messages: [input], model: "gpt-3.5-turbo" });
 
     expect(result).toBeDefined();
     expect(typeof result).toBe("object");

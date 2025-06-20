@@ -1,6 +1,18 @@
 import { BaseMessage, BaseMessageLike } from "@langchain/core/messages";
 import { Annotation, messagesStateReducer } from "@langchain/langgraph";
 
+
+const ResourceAnnotation = Annotation.Root({
+  url: Annotation<string>,
+  title: Annotation<string>,
+  description: Annotation<string>,
+  content: Annotation<string>,
+});
+
+const LogAnnotation = Annotation.Root({
+  message: Annotation<string>,
+  done: Annotation<boolean>,
+});
 /**
  * A graph's StateAnnotation defines three main things:
  * 1. The structure of the data to be passed between nodes (which "channels" to read from/write to and their types)
@@ -48,6 +60,9 @@ export const StateAnnotation = Annotation.Root({
     reducer: messagesStateReducer,
     default: () => [],
   }),
+  model: Annotation<string>,
+  resources: Annotation<(typeof ResourceAnnotation.State)[]>,
+  logs: Annotation<(typeof LogAnnotation.State)[]>,
   /**
    * Feel free to add additional attributes to your state as needed.
    * Common examples include retrieved documents, extracted entities, API connections, etc.

@@ -2,9 +2,11 @@
  * Starter LangGraph.js Template
  * Make this code your own!
  */
-import { StateGraph } from "@langchain/langgraph";
+import { START, END, StateGraph } from "@langchain/langgraph";
 import { RunnableConfig } from "@langchain/core/runnables";
 import { StateAnnotation } from "./state.js";
+import {search_node} from '../search.js'
+// import { getModel } from "../model.js";
 
 /**
  * Define a node, these do the work of the graph and should have most of the logic.
@@ -56,6 +58,8 @@ const callModel = async (
    * });
    * ```
    */
+  // const model = getModel(state);
+  
   console.log("Current state:", state);
   return {
     messages: [
@@ -76,9 +80,9 @@ const callModel = async (
  */
 export const route = (
   state: typeof StateAnnotation.State,
-): "__end__" | "callModel" => {
+) => {
   if (state.messages.length > 0) {
-    return "__end__";
+    return END;
   }
   // Loop back
   return "callModel";
@@ -92,13 +96,15 @@ const builder = new StateGraph(StateAnnotation)
   // so you have static type checking when it comes time
   // to add the edges.
   .addNode("callModel", callModel)
+  .addNode('search_node', search_node)
   // Regular edges mean "always transition to node B after node A is done"
   // The "__start__" and "__end__" nodes are "virtual" nodes that are always present
   // and represent the beginning and end of the builder.
-  .addEdge("__start__", "callModel")
+  .addEdge(START, "search_node")
+  .addEdge("search_node", "callModel")
   // Conditional edges optionally route to different nodes (or end)
   .addConditionalEdges("callModel", route);
 
 export const graph = builder.compile();
 
-graph.name = "New Agent";
+graph.name = "AlfaGpt Research Builder";

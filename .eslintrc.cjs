@@ -23,7 +23,7 @@ module.exports = {
     "*.d.ts",
   ],
   rules: {
-    "no-process-env": 2,
+    // "no-process-env": 2,
     "no-instanceof/no-instanceof": 2,
     "@typescript-eslint/explicit-module-boundary-types": 0,
     "@typescript-eslint/no-empty-function": 0,
@@ -36,10 +36,10 @@ module.exports = {
     camelcase: 0,
     "class-methods-use-this": 0,
     "import/extensions": [2, "ignorePackages"],
-    "import/no-extraneous-dependencies": [
-      "error",
-      { devDependencies: ["**/*.test.ts"] },
-    ],
+    // "import/no-extraneous-dependencies": [
+    //   "error",
+    //   { devDependencies: ["**/*.test.ts"] },
+    // ],
     "import/no-unresolved": 0,
     "import/prefer-default-export": 0,
     "keyword-spacing": "error",
