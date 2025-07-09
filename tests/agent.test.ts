@@ -5,7 +5,10 @@ describe("Routers", () => {
     const res = route({
       messages: [], model: "gpt-4o",
       resources: [],
-      logs: []
+      logs: [],
+      research_question: "",
+      report: "",
+      classification: ""
     });
     expect(res).toEqual("callModel");
   }, 100_000);

@@ -3,9 +3,13 @@
  * Make this code your own!
  */
 import { START, END, StateGraph } from "@langchain/langgraph";
-import { RunnableConfig } from "@langchain/core/runnables";
-import { StateAnnotation } from "./state.js";
+import { AIMessage } from "@langchain/core/messages";
+// import { RunnableConfig } from "@langchain/core/runnables";
+import { AgentState, StateAnnotation } from "./state.js";
 import {search_node} from '../search.js'
+import { download_node } from "../download.js";
+import { chat_node } from "./chat.js";
+import { classifier_node } from "../classifier.js";
 // import { getModel } from "../model.js";
 
 /**
@@ -16,10 +20,10 @@ import {search_node} from '../search.js'
  * @returns Some subset of parameters of the graph state, used to update the state
  * for the edges and nodes executed next.
  */
-const callModel = async (
-  state: typeof StateAnnotation.State,
-  _config: RunnableConfig,
-): Promise<typeof StateAnnotation.Update> => {
+// const callModel = async (
+//   state: typeof StateAnnotation.State,
+//   _config: RunnableConfig,
+// ): Promise<typeof StateAnnotation.Update> => {
   /**
    * Do some work... (e.g. call an LLM)
    * For example, with LangChain you could do something like:
@@ -60,16 +64,16 @@ const callModel = async (
    */
   // const model = getModel(state);
   
-  console.log("Current state:", state);
-  return {
-    messages: [
-      {
-        role: "assistant",
-        content: `Hi there! How are you?`,
-      },
-    ],
-  };
-};
+//   console.log("Current state:", state);
+//   return {
+//     messages: [
+//       {
+//         role: "assistant",
+//         content: `Hi there! How are you?`,
+//       },
+//     ],
+//   };
+// };
 
 /**
  * Routing function: Determines whether to continue research or end the builder.
@@ -78,15 +82,42 @@ const callModel = async (
  * @param state - The current state of the research builder
  * @returns Either "callModel" to continue research or END to finish the builder
  */
-export const route = (
-  state: typeof StateAnnotation.State,
-) => {
-  if (state.messages.length > 0) {
-    return END;
+export function route(state: AgentState) {
+  const messages = state.messages || [];
+
+  if (
+    messages.length > 0 &&
+    messages[messages.length - 1].constructor.name === "AIMessageChunk"
+  ) {
+    const aiMessage = messages[messages.length - 1] as AIMessage;
+
+    if (
+      aiMessage.tool_calls &&
+      aiMessage.tool_calls.length > 0 &&
+      aiMessage.tool_calls[0].name === "Search"
+    ) {
+      return "search_node";
+    } else if (
+      aiMessage.tool_calls &&
+      aiMessage.tool_calls.length > 0 &&
+      aiMessage.tool_calls[0].name === "DeleteResources"
+    ) {
+      return "delete_node";
+    }
   }
-  // Loop back
-  return "callModel";
-};
+  if (
+    messages.length > 0 &&
+    messages[messages.length - 1].constructor.name === "ToolMessage"
+  ) {
+     const aiMessage = messages[messages.length - 1] as AIMessage;
+    if ((aiMessage.tool_calls && aiMessage.tool_calls.length > 0 &&
+      (aiMessage.tool_calls[0].name === "WriteReport" || aiMessage.tool_calls[0].name === "WriteResearchQuestion" )) || aiMessage.name === 'WriteReport') {
+      return END;
+    }
+    return "chat_node";
+  }
+  return END;
+}
 
 // Finally, create the graph itself.
 const builder = new StateGraph(StateAnnotation)
@@ -95,15 +126,20 @@ const builder = new StateGraph(StateAnnotation)
   // updates the types of the StateGraph instance
   // so you have static type checking when it comes time
   // to add the edges.
-  .addNode("callModel", callModel)
+  .addNode("agent_node", chat_node)
+  .addNode("classifier_node", classifier_node)
   .addNode('search_node', search_node)
+  .addNode('download_node', download_node)
   // Regular edges mean "always transition to node B after node A is done"
   // The "__start__" and "__end__" nodes are "virtual" nodes that are always present
   // and represent the beginning and end of the builder.
-  .addEdge(START, "search_node")
-  .addEdge("search_node", "callModel")
+  .addEdge(START, "classifier_node")
+  .addEdge('classifier_node', "agent_node")
+  // .addEdge("search_node", "callModel")
   // Conditional edges optionally route to different nodes (or end)
-  .addConditionalEdges("callModel", route);
+  .addConditionalEdges("agent_node", route, ['search_node', END])
+  .addEdge("search_node", "download_node")
+  .addEdge("download_node", "agent_node");
 
 export const graph = builder.compile();
 

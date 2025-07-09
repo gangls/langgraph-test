@@ -63,6 +63,9 @@ export const StateAnnotation = Annotation.Root({
   model: Annotation<string>,
   resources: Annotation<(typeof ResourceAnnotation.State)[]>,
   logs: Annotation<(typeof LogAnnotation.State)[]>,
+  research_question: Annotation<string>,
+  report: Annotation<string>,
+  classification: Annotation<string>,
   /**
    * Feel free to add additional attributes to your state as needed.
    * Common examples include retrieved documents, extracted entities, API connections, etc.
@@ -72,3 +75,6 @@ export const StateAnnotation = Annotation.Root({
    */
   // additionalField: Annotation<string>,
 });
+
+export type AgentState = typeof StateAnnotation.State;
+export type Resource = typeof ResourceAnnotation.State;

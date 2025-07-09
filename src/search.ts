@@ -21,6 +21,7 @@ import {
   copilotkitEmitState,
 } from "@copilotkit/sdk-js/langgraph";
 import { getModel } from "./model.js";
+import { searchSearxng } from "./searxng.js";
 
 const ResourceInput = z.object({
   url: z.string().describe("The URL of the resource"),
@@ -35,10 +36,14 @@ const ExtractResources = tool(() => {}, {
 });
 
 const tavilyClient = tavily({
-  apiKey: process.env.TAVILY_API_KEY,
+  apiKey:
+    process.env.TAVILY_API_KEY || "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",
 });
 
-export async function search_node(state: typeof StateAnnotation.State, config: any) {
+export async function search_node(
+  state: typeof StateAnnotation.State,
+  config: any,
+) {
   const aiMessage = state["messages"][
     state["messages"].length - 1
   ] as AIMessage;
@@ -65,8 +70,14 @@ export async function search_node(state: typeof StateAnnotation.State, config: a
 
   for (let i = 0; i < queries.length; i++) {
     const query = queries[i];
-    const response = await tavilyClient.search(query, {});
-    search_results.push(response);
+    // const response = await tavilyClient.search(query, {});
+    const response = await searchSearxng(query, {
+      language: "en",
+      engines: ["google"],
+    });
+    if (response){
+      search_results.push(response);
+    }
     logs[i]["done"] = true;
     await copilotkitEmitState(config, {
       ...restOfState,
@@ -122,7 +133,7 @@ export async function search_node(state: typeof StateAnnotation.State, config: a
       ...state["messages"],
       searchResultsToolMessageFull,
     ],
-    customConfig as RunnableConfig
+    customConfig as RunnableConfig,
   );
 
   const aiMessageResponse = response as AIMessage;
