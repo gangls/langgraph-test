@@ -1,4 +1,5 @@
 import { BaseMessage, BaseMessageLike } from "@langchain/core/messages";
+import { Tool } from "@langchain/core/tools";
 import { Annotation, messagesStateReducer } from "@langchain/langgraph";
 
 
@@ -12,6 +13,19 @@ const ResourceAnnotation = Annotation.Root({
 const LogAnnotation = Annotation.Root({
   message: Annotation<string>,
   done: Annotation<boolean>,
+});
+
+const AgentAnnotation = Annotation.Root({
+  task: Annotation<string>,
+  thoughts: Annotation<string[]>,
+  actions: Annotation<Array<{
+    name: string;
+    parameters: Record<string, unknown>;
+  }>>,
+  observations: Annotation<unknown[]>,
+  iteration: Annotation<number>,
+  errorCount: Annotation<number>,
+  finalAnswer: Annotation<string>,
 });
 /**
  * A graph's StateAnnotation defines three main things:
@@ -66,6 +80,21 @@ export const StateAnnotation = Annotation.Root({
   research_question: Annotation<string>,
   report: Annotation<string>,
   classification: Annotation<string>,
+  query: Annotation<string>,
+  // ReAct state  
+  task: Annotation<string>,
+  thoughts: Annotation<string[]>,
+  actions: Annotation<Array<{
+    name: string;
+    parameters: Record<string, unknown>;
+  }>>,
+  observations: Annotation<unknown[]>,
+  total: Annotation<number>,
+  iteration: Annotation<number>,
+  errorCount: Annotation<number>,
+  finalAnswer: Annotation<string>,
+  tools: Annotation<Tool[]>,
+  // agent: Annotation<typeof AgentAnnotation.State>,
   /**
    * Feel free to add additional attributes to your state as needed.
    * Common examples include retrieved documents, extracted entities, API connections, etc.

@@ -3,14 +3,21 @@
  * Make this code your own!
  */
 import { START, END, StateGraph } from "@langchain/langgraph";
-import { AIMessage } from "@langchain/core/messages";
+import { ToolNode } from "@langchain/langgraph/prebuilt";
+
 // import { RunnableConfig } from "@langchain/core/runnables";
 import { AgentState, StateAnnotation } from "./state.js";
-import {search_node} from '../search.js'
-import { download_node } from "../download.js";
-import { chat_node } from "./chat.js";
-import { classifier_node } from "../classifier.js";
+// import {search_node} from '../search.js'
+// import { download_node } from "../download.js";
+import { agent_node } from "./chat.js";
 // import { getModel } from "../model.js";
+
+import { classifier_node } from "../classifier.js";
+import { tools, tools_node } from "../tools/index.js";
+
+
+
+// const toolNode = new ToolNode([tools])
 
 /**
  * Define a node, these do the work of the graph and should have most of the logic.
@@ -83,40 +90,12 @@ import { classifier_node } from "../classifier.js";
  * @returns Either "callModel" to continue research or END to finish the builder
  */
 export function route(state: AgentState) {
-  const messages = state.messages || [];
-
-  if (
-    messages.length > 0 &&
-    messages[messages.length - 1].constructor.name === "AIMessageChunk"
-  ) {
-    const aiMessage = messages[messages.length - 1] as AIMessage;
-
-    if (
-      aiMessage.tool_calls &&
-      aiMessage.tool_calls.length > 0 &&
-      aiMessage.tool_calls[0].name === "Search"
-    ) {
-      return "search_node";
-    } else if (
-      aiMessage.tool_calls &&
-      aiMessage.tool_calls.length > 0 &&
-      aiMessage.tool_calls[0].name === "DeleteResources"
-    ) {
-      return "delete_node";
-    }
-  }
-  if (
-    messages.length > 0 &&
-    messages[messages.length - 1].constructor.name === "ToolMessage"
-  ) {
-     const aiMessage = messages[messages.length - 1] as AIMessage;
-    if ((aiMessage.tool_calls && aiMessage.tool_calls.length > 0 &&
-      (aiMessage.tool_calls[0].name === "WriteReport" || aiMessage.tool_calls[0].name === "WriteResearchQuestion" )) || aiMessage.name === 'WriteReport') {
-      return END;
-    }
-    return "chat_node";
-  }
-  return END;
+  // 检查终止条件
+      if (state.finalAnswer) return END;
+      if (state.iteration >= 4) return END;
+      if (state.errorCount >= 2) return END;
+      
+      return "tools_node";
 }
 
 // Finally, create the graph itself.
@@ -126,20 +105,23 @@ const builder = new StateGraph(StateAnnotation)
   // updates the types of the StateGraph instance
   // so you have static type checking when it comes time
   // to add the edges.
-  .addNode("agent_node", chat_node)
+  .addNode("agent_node", agent_node)
   .addNode("classifier_node", classifier_node)
-  .addNode('search_node', search_node)
-  .addNode('download_node', download_node)
+  // .addNode('search_node', search_node)
+  .addNode('tools_node', tools_node)
+  // .addNode('download_node', download_node)
   // Regular edges mean "always transition to node B after node A is done"
   // The "__start__" and "__end__" nodes are "virtual" nodes that are always present
   // and represent the beginning and end of the builder.
-  .addEdge(START, "classifier_node")
   .addEdge('classifier_node', "agent_node")
+  .addEdge(START, "classifier_node")
+  // .addEdge('classifier_node', "agent_node")
   // .addEdge("search_node", "callModel")
   // Conditional edges optionally route to different nodes (or end)
-  .addConditionalEdges("agent_node", route, ['search_node', END])
-  .addEdge("search_node", "download_node")
-  .addEdge("download_node", "agent_node");
+  .addConditionalEdges("agent_node", route, [ 'tools_node', END])
+  .addEdge("tools_node", "agent_node")
+  // .addEdge("search_node", "download_node")
+  // .addEdge("download_node", "agent_node");
 
 export const graph = builder.compile();
 

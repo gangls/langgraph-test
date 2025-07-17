@@ -54,16 +54,27 @@ export async function classifier_node(
   state: typeof StateAnnotation.State,
 // config: RunnableConfig,
 ) {
-
-  const { research_question } = state;
+  let query = '';
+  const { messages } = state;
+  const message = messages[messages.length - 1];
+  if (message.getType() === 'human'){
+    query = message.content.toString();
+  }
 
   const model = getModel(state);
 
   const response = await promptTemplate.pipe(model).invoke({
-    query: research_question,
+    query,
   });
 
   return {
+    task: query,
+    thoughts: [],
+    actions: [],
+    observations: [],
+    total: 4,
+    iteration: 0,
+    errorCount: 0,
     classification: response.content,
   };
 }

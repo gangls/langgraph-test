@@ -25,7 +25,7 @@ export const searchSearxng = async (
   query: string,
   opts?: SearxngSearchOptions,
 ) => {
-  const searxngURL = process.env.SEARXNG_URL || 'https://translate.sending.me/';
+  const searxngURL = 'https://translate.sending.me';
 
   const url = new URL(`${searxngURL}/search?format=json`);
   url.searchParams.append('q', query);
@@ -43,7 +43,9 @@ export const searchSearxng = async (
     });
   }
   try {
-    const res = await axios.get(url.toString());
+    const res = await axios.get(url.toString(), {
+      timeout: 6000,
+    });
 
     const results: SearxngSearchResult[] = res.data.results;
     const suggestions: string[] = res.data.suggestions;

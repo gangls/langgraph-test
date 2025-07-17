@@ -8,18 +8,13 @@
 
 import { z } from "zod";
 import { tool } from "@langchain/core/tools";
-import { tavily } from "@tavily/core";
-import { StateAnnotation } from "./agent/state.js";
+import { AgentState } from "./agent/state.js";
 import { RunnableConfig } from "@langchain/core/runnables";
 import {
   AIMessage,
   SystemMessage,
   ToolMessage,
 } from "@langchain/core/messages";
-import {
-  copilotkitCustomizeConfig,
-  copilotkitEmitState,
-} from "@copilotkit/sdk-js/langgraph";
 import { getModel } from "./model.js";
 import { searchSearxng } from "./searxng.js";
 
@@ -35,14 +30,9 @@ const ExtractResources = tool(() => {}, {
   schema: z.object({ resources: z.array(ResourceInput) }),
 });
 
-const tavilyClient = tavily({
-  apiKey:
-    process.env.TAVILY_API_KEY || "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",
-});
-
 export async function search_node(
-  state: typeof StateAnnotation.State,
-  config: any,
+  state: AgentState,
+  config: RunnableConfig,
 ) {
   const aiMessage = state["messages"][
     state["messages"].length - 1
@@ -60,11 +50,7 @@ export async function search_node(
     });
   }
   const { messages, ...restOfState } = state;
-  await copilotkitEmitState(config, {
-    ...restOfState,
-    logs,
-    resources,
-  });
+
 
   const search_results = [];
 
@@ -79,11 +65,6 @@ export async function search_node(
       search_results.push(response);
     }
     logs[i]["done"] = true;
-    await copilotkitEmitState(config, {
-      ...restOfState,
-      logs,
-      resources,
-    });
   }
 
   const searchResultsToolMessageFull = new ToolMessage({
@@ -98,16 +79,6 @@ export async function search_node(
     name: "Search",
   });
 
-  const customConfig = copilotkitCustomizeConfig(config, {
-    emitIntermediateState: [
-      {
-        stateKey: "resources",
-        tool: "ExtractResources",
-        toolArgument: "resources",
-      },
-    ],
-  });
-
   const model = getModel(state);
   const invokeArgs: Record<string, any> = {};
   if (model.constructor.name === "ChatOpenAI") {
@@ -115,12 +86,6 @@ export async function search_node(
   }
 
   logs = [];
-
-  await copilotkitEmitState(config, {
-    ...restOfState,
-    resources,
-    logs,
-  });
 
   const response = await model.bindTools!([ExtractResources], {
     ...invokeArgs,
@@ -133,7 +98,6 @@ export async function search_node(
       ...state["messages"],
       searchResultsToolMessageFull,
     ],
-    customConfig as RunnableConfig,
   );
 
   const aiMessageResponse = response as AIMessage;

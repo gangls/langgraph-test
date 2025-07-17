@@ -6,12 +6,12 @@ import { ChatOpenAI } from "@langchain/openai";
 import { ChatAnthropic } from "@langchain/anthropic";
 import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
 import { BaseChatModel } from "@langchain/core/language_models/chat_models";
-import { StateAnnotation } from "./agent/state.js";
+import { AgentState } from "./agent/state.js";
 import { HttpsProxyAgent } from "https-proxy-agent";
 
 const proxyAgent = new HttpsProxyAgent("http://127.0.0.1:54706");
 
-function getModel(state: typeof StateAnnotation.State): BaseChatModel {
+function getModel(state: AgentState): BaseChatModel {
   /**
    * Get a model based on the environment variable.
    */

@@ -8,7 +8,17 @@ describe("Routers", () => {
       logs: [],
       research_question: "",
       report: "",
-      classification: ""
+      classification: "",
+      query: "",
+      task: "",
+      thoughts: [],
+      actions: [],
+      observations: [],
+      total: 4,
+      iteration: 0,
+      errorCount: 0,
+      finalAnswer: "",
+      tools: []
     });
     expect(res).toEqual("callModel");
   }, 100_000);
