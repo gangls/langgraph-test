@@ -118,7 +118,6 @@ export class VectorStoreTool extends StructuredTool {
   async _call({query}: { query: string, classification: string }) {
     // 实际实现中应调用真实向量库
     // 初始化 Embedding 模型
-    const filter = getVectorStoreFilter("Concept & How-To");
     const embeddings = new OpenAIEmbeddings({
       openAIApiKey: "",
       modelName: "Qwen/Qwen3-Embedding-8B",

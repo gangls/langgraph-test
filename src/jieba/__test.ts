@@ -1,4 +1,4 @@
-import { tokenizeWithProtectedPhrases, withDict } from ".";
+import { tokenizeWithProtectedPhrases, withDict } from "./index.js";
 import { readFileSync } from 'fs'
 import path from 'path';
 
@@ -22,4 +22,6 @@ console.log(tokenizeWithProtectedPhrases(text));
 
 }
 
-main()
+(async ()=>{
+ await main()   
+})

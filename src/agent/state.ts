@@ -15,18 +15,18 @@ const LogAnnotation = Annotation.Root({
   done: Annotation<boolean>,
 });
 
-const AgentAnnotation = Annotation.Root({
-  task: Annotation<string>,
-  thoughts: Annotation<string[]>,
-  actions: Annotation<Array<{
-    name: string;
-    parameters: Record<string, unknown>;
-  }>>,
-  observations: Annotation<unknown[]>,
-  iteration: Annotation<number>,
-  errorCount: Annotation<number>,
-  finalAnswer: Annotation<string>,
-});
+// const AgentAnnotation = Annotation.Root({
+//   task: Annotation<string>,
+//   thoughts: Annotation<string[]>,
+//   actions: Annotation<Array<{
+//     name: string;
+//     parameters: Record<string, unknown>;
+//   }>>,
+//   observations: Annotation<unknown[]>,
+//   iteration: Annotation<number>,
+//   errorCount: Annotation<number>,
+//   finalAnswer: Annotation<string>,
+// });
 /**
  * A graph's StateAnnotation defines three main things:
  * 1. The structure of the data to be passed between nodes (which "channels" to read from/write to and their types)

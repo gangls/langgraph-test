@@ -24,7 +24,8 @@ function getModel(state: AgentState): BaseChatModel {
   if (model === "openai") {
     return new ChatOpenAI({
       temperature: 0,
-      model: "gpt-3.5-turbo",
+      // model: "gpt-3.5-turbo",
+      model: "gpt-4o-mini",
       configuration: {
         httpAgent: proxyAgent,
       },

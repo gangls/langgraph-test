@@ -32,7 +32,7 @@ const ExtractResources = tool(() => {}, {
 
 export async function search_node(
   state: AgentState,
-  config: RunnableConfig,
+  _config: RunnableConfig,
 ) {
   const aiMessage = state["messages"][
     state["messages"].length - 1
@@ -49,7 +49,7 @@ export async function search_node(
       done: false,
     });
   }
-  const { messages, ...restOfState } = state;
+  // const { messages, ...restOfState } = state;
 
 
   const search_results = [];

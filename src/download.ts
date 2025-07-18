@@ -44,7 +44,7 @@ async function downloadResource(url: string): Promise<string> {
   }
 }
 
-export async function download_node(state: typeof StateAnnotation.State, config: RunnableConfig) {
+export async function download_node(state: typeof StateAnnotation.State, _config: RunnableConfig) {
   const resources = state["resources"] || [];
   const logs = state["logs"] || [];
 
@@ -64,7 +64,7 @@ export async function download_node(state: typeof StateAnnotation.State, config:
   }
 
   // Emit the state to let the UI update
-  const { messages, ...restOfState } = state;
+  // const { messages, ...restOfState } = state;
   // await copilotkitEmitState(config, {
   //   ...restOfState,
   //   resources,
