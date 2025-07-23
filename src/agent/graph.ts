@@ -106,7 +106,7 @@ export function route(state: AgentState) {
   // if(state.actions)
   if (state.finalAnswer) return "answer_node";
   if (state.iteration >= 4) return "answer_node";
-  if (state.errorCount >= 2) return "answer_node";
+  // if (state.errorCount >= 2) return "answer_node";
 
   return "tools_node";
 }
@@ -119,7 +119,7 @@ const builder = new StateGraph(StateAnnotation)
   // so you have static type checking when it comes time
   // to add the edges.
   .addNode("agent_node", agent_node)
-  .addNode("classifier_node", classifier_node)
+  .addNode("init_node", classifier_node)
   // .addNode('search_node', search_node)
   .addNode("tools_node", tools_node)
   .addNode("answer_node", answer_node)
@@ -127,8 +127,8 @@ const builder = new StateGraph(StateAnnotation)
   // Regular edges mean "always transition to node B after node A is done"
   // The "__start__" and "__end__" nodes are "virtual" nodes that are always present
   // and represent the beginning and end of the builder.
-  .addEdge("classifier_node", "agent_node")
-  .addEdge(START, "classifier_node")
+  .addEdge("init_node", "agent_node")
+  .addEdge(START, "init_node")
   // .addEdge('classifier_node', "agent_node")
   // .addEdge("search_node", "callModel")
   // Conditional edges optionally route to different nodes (or end)

@@ -28,6 +28,7 @@
     "@langchain/core": "^0.3.60",
     "@langchain/google-genai": "^0.2.13",
     "@langchain/langgraph": "^0.3.0",
+    "@langchain/mcp-adapters": "^0.5.3",
     "@langchain/openai": "^0.5.13",
     "@langchain/tavily": "^0.1.4",
     "@node-rs/jieba": "^2.0.1",

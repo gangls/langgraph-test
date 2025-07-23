@@ -3,11 +3,11 @@
  */
 import { RunnableConfig } from "@langchain/core/runnables";
 import { JsonOutputParser } from "@langchain/core/output_parsers";
+import { Document } from 'langchain/document';
 import { z } from "zod";
 
 import { AgentState } from "./state.js";
 import { getModel } from "../model.js";
-import { tools } from "../tools/index.js";
 import { SystemMessage, HumanMessage } from "@langchain/core/messages";
 
 // const WriteReport = tool(() => {}, {
@@ -55,6 +55,9 @@ const Agent_Prompt = (state: AgentState) => {
 ### actions: 
 ${state.actions.map((action) => `- ${action.name}: ${JSON.stringify(action.parameters)}`).join("\n") || "无"}
 
+### tokens:
+${state.tokens.map((token: Document) => `- ${token.pageContent}`).join("\n") || "无"}
+
 请生成下一步响应：
 
 ### 工作流规则
@@ -63,7 +66,7 @@ ${state.actions.map((action) => `- ${action.name}: ${JSON.stringify(action.param
 3. **工具使用**：只能使用下方提供的工具，禁止虚构工具
 
 ### 可用工具
-${tools.map((tool) => `- ${tool.name}: ${tool.description}`)}
+${state.tools.map((tool) => `- ${tool.name}: ${tool.description} input: ${JSON.stringify(tool.schema)}`)}
 
 ### 工具选择指南
 1. **优先使用**：如果有直接相关的工具，优先使用。
@@ -71,6 +74,7 @@ ${tools.map((tool) => `- ${tool.name}: ${tool.description}`)}
 3. **迭代思考**：每次工具调用后，基于结果进行迭代思考。
 4. **错误处理**：如果工具失败，分析原因并选择替代方案。
 5. 如果遇到需要查询价格走势的时候，请使用工具：tavily_search。
+5. 工具调用参数Token请使用address字段
 
 ### 响应格式要求（JSON）
 {{
@@ -101,6 +105,7 @@ export async function agent_node(state: AgentState, config: RunnableConfig) {
   const model = getModel(state);
   const parser = new JsonOutputParser<z.infer<typeof ResponseSchema>>();
   const systemPrompt = SYSTEM_PROMPT(state);
+  model.bindTools?.(state.tools);
 
   const response = await model.invoke(
     [

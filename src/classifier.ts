@@ -6,9 +6,13 @@
  * The search node is responsible for searching the internet for information.
  */
 
-import { StateAnnotation } from "./agent/state.js";
-import { getModel } from "./model.js";
+import { AgentState, StateAnnotation } from "./agent/state.js";
+// import { getModel } from "./model.js";
 import { ChatPromptTemplate } from "@langchain/core/prompts";
+import { getTools } from "./tools/index.js";
+import { tokenizeWithProtectedPhrases } from "./jieba/index.js";
+import { getTokens } from "./tools/vector.js";
+import { AIMessage } from "@langchain/core/messages";
 
 const classificationPrompt = `
 You are a question classification assistant, well-versed in crypto-related knowledge and familiar with the terminology and phrasing habits of people in web3.
@@ -51,30 +55,44 @@ const promptTemplate = ChatPromptTemplate.fromMessages([
 
 
 export async function classifier_node(
-  state: typeof StateAnnotation.State,
+  state: AgentState,
 // config: RunnableConfig,
 ) {
   let query = '';
   const { messages } = state;
   const message = messages[messages.length - 1];
   if (message.getType() === 'human'){
-    query = message.content.toString();
+    query = message.text;
   }
 
-  const model = getModel(state);
+  const tools = await getTools();
 
-  const response = await promptTemplate.pipe(model).invoke({
-    query,
-  });
+  const tokens = await getTokens(query, 100);
+
+  console.log(tokens)
+
+  // const model = getModel(state);
+
+  // const response = await promptTemplate.pipe(model).invoke({
+  //   query,
+  // });
 
   return {
     task: query,
     thoughts: [],
+    messages: [
+      ...state.messages,
+      new AIMessage(
+        `${tokens.map((doc) => doc.pageContent).join("\n")}`,
+      ),
+    ],
     actions: [],
     observations: [],
     total: 4,
     iteration: 0,
     errorCount: 0,
-    classification: response.content,
+    tools,
+    tokens,
+    // classification: response.content,
   };
 }

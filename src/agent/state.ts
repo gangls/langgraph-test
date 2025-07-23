@@ -1,5 +1,6 @@
 import { BaseMessage, BaseMessageLike } from "@langchain/core/messages";
 import { Tool } from "@langchain/core/tools";
+import { Document } from 'langchain/document';
 import { Annotation, messagesStateReducer } from "@langchain/langgraph";
 
 
@@ -94,6 +95,7 @@ export const StateAnnotation = Annotation.Root({
   errorCount: Annotation<number>,
   finalAnswer: Annotation<string>,
   tools: Annotation<Tool[]>,
+  tokens: Annotation<Document[]>,
   // agent: Annotation<typeof AgentAnnotation.State>,
   /**
    * Feel free to add additional attributes to your state as needed.
